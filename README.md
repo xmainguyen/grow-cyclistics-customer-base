@@ -1,21 +1,21 @@
-# Cyclistics Customer Growth Analysis
+# Cyclistics Customer Growth Analysis 🚴‍♀️
 
-## Overview
-
-This repository contains the analysis for the Cyclistics customer growth project. The objective of this case study is to analyze historical bike-share data to identify trends and differences in usage between "casual" riders and "annual" members. The ultimate goal is to provide recommendations on how to convert casual riders into annual members.
-
-## Business Problem
+## 🎯 Business Problem
 
 Cyclistic’s Customer Growth Team is creating a business plan for next year. The team wants to understand how their customers are using their bikes; their top priority is identifying customer demand at different station locations. **The primary question:** How can we apply customer usage insights to inform new station growth?
 
-The detailed problem description and goals for this project can be found in the documentation folder. 
+The detailed problem description and goals for this project can be found in the `documentation/` folder. 
+
+## ℹ️ Overview
+
+This repository contains the analysis for the Cyclistics customer growth project. The objective of this case study is to analyze historical bike-share data to identify trends and differences in usage. The project 
 
 ## 🛠️ Project Structure
 ```
 cyclistics-customer-growth-project/
 ├── data/                     # Saved raw and cleaned data (CSV files)
 │   ├── stations.csv
-│   ├── tripss.csv
+│   ├── trips.csv
 │   └── trips_cleaned.csv
 ├── notebooks/
 │   ├── 01_data_pull.ipynb                     # API fetch from Google BigQuery, raw → curated tables
@@ -27,10 +27,10 @@ cyclistics-customer-growth-project/
 │   ├── 02_ProjectRequirements.pdf             
 │   └── 03_Strategy.pdf                        
 ├── dashboard/
-│   └── app.py                      # Optional Streamlit dashboard
+│   └── app.tbwx                               # A Tableau dashboard
 ```
 
-## Data
+## 🗂️ Data
 
 The data used for this analysis is located in the `data/` directory. It consists of 12 months of trip data in 2018 from Cyclistics. The data has been processed and cleaned for analysis.
 
@@ -46,7 +46,7 @@ The primary datasets were queried directly from BigQuery's public data repositor
 
 Additionally, a supplementary **Zip Code Data** file (`.csv`) was uploaded to our BigQuery project. This file contains specific zip code information that was joined with the public datasets to enrich the analysis.
 
-## Analysis and Findings
+## 📊 Analysis and Findings
 
 The core of the analysis is within the Jupyter Notebook located at `notebooks/`.
 
@@ -57,9 +57,7 @@ The analysis is structured as follows:
 3.  **Data Visualization:** Creating visualizations to communicate the findings effectively.
 4.  **Key Findings:** Summarizing the main discoveries from the analysis, focusing on the differences between casual and member riders.
 
-*[Optional: You can add a few key findings here as bullet points.]*
-
-## Recommendations
+## ✅ Recommendations
 
 Based on the analysis, the following recommendations are proposed to help convert casual riders into annual members:
 
@@ -77,7 +75,7 @@ A more detailed explanation of the recommendations can be found in the analysis 
       * NumPy
       * Matplotlib
       * Seaborn
-      * [Any other libraries you used]
+      * ..
 
 ## How to Run the Analysis
 

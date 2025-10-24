@@ -1,0 +1,86 @@
+---
+title: "The Causal Effect of Temperature on Average Trip Duration (TWFE Model)"
+author: "Mai Nguyen"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r load packages}
+
+library('dplyr')
+library('readr')
+library('plm')
+library('stargazer')
+library('parameters')
+```
+
+## 1. Load Data
+
+```{r load_data}
+# --- 1. Load Data ---
+# Load the regular dataset
+trip.data <- read.csv("data/trips_cleaned.csv")
+# Load the panel dataset into a dataframe called 'bike.panel'
+trip.panel <- read.csv("data/trips_panel.csv")
+
+# --- 2. Set index ---
+trip.panel <- pdata.frame(crime, index=c('neighborhood_id', 'day'))
+head(trip.panel)
+```
+
+## 2. Estimate Panel Models
+
+Here we run our panel regressions:
+1. **Regular OLS** (not shown here) - does not control for neighborhood or day of the year fixed effects.
+2. **Fixed Effects Models:**
+  1.  **Within Estimator:** Controls *only* for neighborhood.
+  2.  **Two-Way FE (TWFE):** Controls for both neighborhood (`model="within"`) and day of the week (`factor(day_of_week_num)`). **This is your target model.**
+  3.  **First Differences (FD):** An alternative to fixed effects.
+
+```{r panel_models}
+# --- 6. Estimate Models ---
+
+# Model 1: Regular OLS (for comparison)
+ols_model <- lm(avg_trip_minutes ~ day_mean_temperature + day_mean_wind_speed + day_total_precipitation + holiday,
+                    data=trip.data)
+summary(ols)
+
+# Model 2: Fixed effects or 'within' estimator 
+within_model <- plm(avg_trip_minutes ~ day_mean_temperature + day_mean_wind_speed + day_total_precipitation + holiday,
+                    data=trip.panel,
+                    model='within')
+summary(within_model)
+
+# Model 3: First Differences Model
+fd_model <- plm(avg_trip_minutes ~ day_mean_temperature + day_mean_wind_speed + day_total_precipitation + holiday, 
+                  data=trip.panel, 
+                  model="fd")
+summary(fd_model)
+
+# Model 4: Least square dummy variables 
+# Different regression lines with the same slope, different intercepts
+lsdv_model <- plm(avg_trip_minutes ~ day_mean_temperature + day_mean_wind_speed + day_total_precipitation + holiday
+                  + neighborhood_id - 1, 
+                  data=trip.panel, 
+                  model="pooling")
+summary(lsdv_model)
+
+# Model 5: Two-Way Fixed Effects (TWFE) Model
+twfe_model <- plm(avg_trip_minutes ~ day_mean_temperature + day_mean_wind_speed + day_total_precipitation + holiday + factor(day), 
+                  data=trip.panel, 
+                  model="within")
+summary(twfe_model)
+```
+
+## 3. Compare Models with Stargazer
+
+This chunk uses `stargazer` to create a beautiful comparison table of all the models we just ran. The `type="html"` argument will make it render nicely in the notebook.
+
+```{r stargazer, results='asis'}
+# --- 7. Compare Models with Stargazer ---
+# Outline the output to a nicer format
+stargazer(ols_model, within_model, fd_model, lsdv_model, twfe_model, type="text", 
+          dep.var.labels=c("OLS", "Fixed effects", "First diffs", "LSDV", "TWFE"), 
+          covariate.labels=c("temperature", "wind speed", "precipitation", "holiday"), 
+          out = "trip_results.txt")
+```

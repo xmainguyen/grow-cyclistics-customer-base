@@ -19,13 +19,9 @@ library('parameters')
 ```{r load_data}
 # --- 1. Load Data ---
 # Load the regular dataset
-trip.data <- read.csv("data/trips_cleaned.csv")
+trip.data <- read.csv("/Users/mainguyen/Documents/GitHub/cyclistics-customer-growth-project/data/trips_cleaned.csv")
 # Load the panel dataset into a dataframe called 'bike.panel'
-trip.panel <- read.csv("data/trips_panel.csv")
-
-# --- 2. Set index ---
-trip.panel <- pdata.frame(crime, index=c('neighborhood_id', 'day'))
-head(trip.panel)
+trip.panel <- read.csv("/Users/mainguyen/Documents/GitHub/cyclistics-customer-growth-project/data/trips_panel.csv")
 ```
 
 ## 2. Estimate Panel Models
@@ -41,32 +37,44 @@ Here we run our panel regressions:
 # --- 6. Estimate Models ---
 
 # Model 1: Regular OLS (for comparison)
-ols_model <- lm(avg_trip_minutes ~ day_mean_temperature + day_mean_wind_speed + day_total_precipitation + holiday,
-                    data=trip.data)
-summary(ols)
+ols_model <- lm(trip_count ~ day_mean_temperature + day_mean_wind_speed + day_total_precipitation + holiday,
+                    data=trip.data
+                    , clustered = TRUE, cluster = ~neighborhood_id)
+summary(ols_model)
 
 # Model 2: Fixed effects or 'within' estimator 
-within_model <- plm(avg_trip_minutes ~ day_mean_temperature + day_mean_wind_speed + day_total_precipitation + holiday,
+within_model <- plm(trip_count ~ day_mean_temperature + day_mean_wind_speed + day_total_precipitation + holiday,
                     data=trip.panel,
                     model='within')
 summary(within_model)
 
 # Model 3: First Differences Model
-fd_model <- plm(avg_trip_minutes ~ day_mean_temperature + day_mean_wind_speed + day_total_precipitation + holiday, 
+fd_model <- plm(trip_count ~ day_mean_temperature + day_mean_wind_speed + day_total_precipitation + holiday, 
                   data=trip.panel, 
                   model="fd")
 summary(fd_model)
 
 # Model 4: Least square dummy variables 
 # Different regression lines with the same slope, different intercepts
-lsdv_model <- plm(avg_trip_minutes ~ day_mean_temperature + day_mean_wind_speed + day_total_precipitation + holiday
+temp_sqr <- trip.panel$day_mean_temperature*trip.panel$day_mean_temperature
+lsdv_model <- plm(trip_count ~ day_mean_temperature + temp_sqr
+                  + day_mean_wind_speed + day_total_precipitation + holiday 
                   + neighborhood_id - 1, 
-                  data=trip.panel, 
-                  model="pooling")
+                 data=trip.panel, 
+                 model="pooling")
 summary(lsdv_model)
 
+# Model 6: Intereaction
+inter_model <- plm(trip_count ~ day_mean_temperature + temp_sqr
+                  + day_mean_temperature:day_total_precipitation
+                  + day_mean_wind_speed + day_total_precipitation + holiday 
+                  + neighborhood_id - 1, 
+                 data=trip.panel, 
+                 model="pooling")
+summary(inter_model)
+
 # Model 5: Two-Way Fixed Effects (TWFE) Model
-twfe_model <- plm(avg_trip_minutes ~ day_mean_temperature + day_mean_wind_speed + day_total_precipitation + holiday + factor(day), 
+twfe_model <- plm(trip_count ~ day_mean_temperature + day_mean_wind_speed + day_total_precipitation + holiday + factor(day), 
                   data=trip.panel, 
                   model="within")
 summary(twfe_model)
@@ -79,8 +87,11 @@ This chunk uses `stargazer` to create a beautiful comparison table of all the mo
 ```{r stargazer, results='asis'}
 # --- 7. Compare Models with Stargazer ---
 # Outline the output to a nicer format
-stargazer(ols_model, within_model, fd_model, lsdv_model, twfe_model, type="text", 
-          dep.var.labels=c("OLS", "Fixed effects", "First diffs", "LSDV", "TWFE"), 
+stargazer(ols_model, within_model, lsdv_model, inter_model, twfe_model, type="text", 
+          dep.var.labels=c("OLS", "Fixed effects", "Interact", "LSDV", "TWFE"), 
           covariate.labels=c("temperature", "wind speed", "precipitation", "holiday"), 
-          out = "trip_results.txt")
+          out = "/Users/mainguyen/Documents/GitHub/cyclistics-customer-growth-project/trip_results.txt")
 ```
+
+
+
